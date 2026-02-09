@@ -1,0 +1,174 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, RefreshCw, RotateCw, BookOpen, CheckCircle, HelpCircle } from 'lucide-react';
+
+const FlashcardApp = () => {
+  const originalCards = [
+    { id: 1, category: 'Survival', situation: "You drank too much coffee before class and need to use the bathroom.", reaction: "May I go to the restroom?" },
+    { id: 2, category: 'Survival', situation: "You are sitting next to the window. The sun is in your eyes and it is very hot.", reaction: "Can I open the window?" },
+    { id: 3, category: 'Survival', situation: "You arrived 5 minutes late to class and the door is already closed.", reaction: "May I come in?" },
+    { id: 4, category: 'Survival', situation: "You are coughing a lot and your throat is dry. You need hydration.", reaction: "Can I get a drink of water?" },
+    { id: 5, category: 'Survival', situation: "You forgot your pencil case at home and need to write something.", reaction: "Can I borrow a pencil?" },
+    { id: 6, category: 'Survival', situation: "There is a cold wind coming from outside and you are freezing.", reaction: "Can I close the window?" },
+    { id: 7, category: 'Understanding', situation: "The teacher is speaking very fast. You missed the last two sentences.", reaction: "Can you speak slower, please?" },
+    { id: 8, category: 'Understanding', situation: "You see the word 'Stapler' on the board, but you don't know the definition.", reaction: "What does 'Stapler' mean?" },
+    { id: 9, category: 'Understanding', situation: "You want to say the word 'Grapadora' in English, but you don't know it.", reaction: "How do you say 'Grapadora' in English?" },
+    { id: 10, category: 'Understanding', situation: "The teacher gave complex instructions and you are completely lost.", reaction: "I don't understand. / I'm confused." },
+    { id: 11, category: 'Understanding', situation: "There was a loud noise outside and you didn't hear the question.", reaction: "Can you repeat that, please?" },
+    { id: 12, category: 'Understanding', situation: "You know the word is 'Knowledge', but you don't know if it starts with a 'K' or an 'N'.", reaction: "How do you spell that?" },
+    { id: 13, category: 'Understanding', situation: "You are reading a text aloud and encounter a difficult word like 'Schedule'.", reaction: "How do you pronounce this word?" },
+    { id: 14, category: 'Logistics', situation: "You were distracted. Everyone is looking at the book, but you don't know where.", reaction: "What page are we on?" },
+    { id: 15, category: 'Logistics', situation: "The teacher asks you a difficult question. Your mind is blank.", reaction: "I don't know the answer." },
+    { id: 16, category: 'Logistics', situation: "You know the exact answer and really want to participate.", reaction: "Can I answer?" },
+    { id: 17, category: 'Logistics', situation: "The teacher wrote something on the board, but you aren't sure if it's for the exam.", reaction: "Do we have to write this down?" },
+    { id: 18, category: 'Logistics', situation: "The class is almost over and you want to know the assignment for tomorrow.", reaction: "What's the homework?" },
+    { id: 19, category: 'Logistics', situation: "You completed all the exercises before your classmates.", reaction: "I'm finished. / I'm done." },
+    { id: 20, category: 'Logistics', situation: "You prefer to do the activity with your best friend instead of alone.", reaction: "Can I work with a partner?" },
+  ];
+
+  const [cards, setCards] = useState(originalCards);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [direction, setDirection] = useState(0); // For animation direction
+
+  const handleNext = () => {
+    setIsFlipped(false);
+    setDirection(1);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % cards.length);
+      setDirection(0);
+    }, 150);
+  };
+
+  const handlePrev = () => {
+    setIsFlipped(false);
+    setDirection(-1);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+      setDirection(0);
+    }, 150);
+  };
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handleShuffle = () => {
+    setIsFlipped(false);
+    const shuffled = [...originalCards].sort(() => Math.random() - 0.5);
+    setCards(shuffled);
+    setCurrentIndex(0);
+  };
+
+  const getCategoryIcon = (cat) => {
+    switch(cat) {
+      case 'Survival': return <HelpCircle className="w-5 h-5 text-red-500" />;
+      case 'Understanding': return <BookOpen className="w-5 h-5 text-blue-500" />;
+      case 'Logistics': return <CheckCircle className="w-5 h-5 text-green-500" />;
+      default: return null;
+    }
+  };
+
+  const getCategoryColor = (cat) => {
+    switch(cat) {
+      case 'Survival': return 'bg-red-100 text-red-800';
+      case 'Understanding': return 'bg-blue-100 text-blue-800';
+      case 'Logistics': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100';
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 font-sans">
+      <div className="w-full max-w-lg">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-slate-800">Classroom Speak</h1>
+          <button 
+            onClick={handleShuffle}
+            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Shuffle
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-200 h-2 rounded-full mb-6">
+          <div 
+            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
+          ></div>
+        </div>
+
+        {/* Card Area */}
+        <div className="relative perspective-1000 h-80 cursor-pointer group" onClick={handleFlip}>
+          <div className={`relative w-full h-full transition-all duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+            
+            {/* FRONT (Situation) */}
+            <div className="absolute w-full h-full backface-hidden">
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 flex flex-col items-center justify-center h-full text-center hover:shadow-2xl transition-shadow">
+                <span className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${getCategoryColor(cards[currentIndex].category)}`}>
+                  {getCategoryIcon(cards[currentIndex].category)}
+                  {cards[currentIndex].category}
+                </span>
+                
+                <h3 className="text-slate-400 text-sm font-bold tracking-widest uppercase mb-4">The Situation</h3>
+                <p className="text-xl md:text-2xl text-slate-800 font-medium leading-relaxed">
+                  "{cards[currentIndex].situation}"
+                </p>
+                
+                <div className="absolute bottom-6 text-slate-400 text-sm flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                  <RotateCw className="w-4 h-4" />
+                  Click to reveal answer
+                </div>
+              </div>
+            </div>
+
+            {/* BACK (Reaction) */}
+            <div className="absolute w-full h-full backface-hidden rotate-y-180">
+              <div className="bg-indigo-600 rounded-2xl shadow-xl p-8 flex flex-col items-center justify-center h-full text-center">
+                <h3 className="text-indigo-200 text-sm font-bold tracking-widest uppercase mb-4">You say...</h3>
+                <p className="text-2xl md:text-3xl text-white font-bold leading-relaxed">
+                  "{cards[currentIndex].reaction}"
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex justify-between items-center mt-8 px-4">
+          <button 
+            onClick={handlePrev}
+            className="p-4 bg-white rounded-full shadow-lg text-slate-600 hover:text-indigo-600 hover:shadow-xl transition-all active:scale-95 border border-slate-100"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          
+          <span className="text-slate-500 font-medium">
+            {currentIndex + 1} / {cards.length}
+          </span>
+
+          <button 
+            onClick={handleNext}
+            className="p-4 bg-white rounded-full shadow-lg text-slate-600 hover:text-indigo-600 hover:shadow-xl transition-all active:scale-95 border border-slate-100"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </div>
+
+      </div>
+
+      <style>{`
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+      `}</style>
+    </div>
+  );
+};
+
+export default FlashcardApp;
