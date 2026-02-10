@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Tiempos Verbales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para el efecto de volteo 3D */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* Safari */
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="max-w-md w-full">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-slate-700 mb-2">Practice Tenses</h1>
+            <p class="text-slate-500">Past, Present & Progressive</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-200 rounded-full h-2.5 mb-6">
+            <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Flashcard Container -->
+        <div class="perspective-1000 w-full h-80 cursor-pointer group" onclick="flipCard()">
+            <div id="card-inner" class="card-inner relative w-full h-full shadow-xl rounded-2xl">
+                
+                <!-- Front Side -->
+                <div class="card-face absolute w-full h-full bg-white rounded-2xl p-8 flex flex-col items-center justify-center text-center border-2 border-slate-100">
+                    <div class="absolute top-4 left-4 text-xs font-bold text-indigo-500 uppercase tracking-wide">Front</div>
+                    <div class="mb-4 text-indigo-100 text-6xl opacity-20"><i class="fas fa-question-circle"></i></div>
+                    <h2 id="card-front-text" class="text-2xl font-semibold text-slate-800">
+                        <!-- Text injected via JS -->
+                    </h2>
+                    <p class="mt-6 text-sm text-slate-400">Click to flip</p>
+                </div>
+
+                <!-- Back Side -->
+                <div class="card-face card-back absolute w-full h-full bg-indigo-600 rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white">
+                    <div class="absolute top-4 left-4 text-xs font-bold text-indigo-200 uppercase tracking-wide">Back</div>
+                    <div class="mb-4 text-white text-6xl opacity-20"><i class="fas fa-lightbulb"></i></div>
+                    <h2 id="card-back-text" class="text-2xl font-medium">
+                        <!-- Text injected via JS -->
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-between items-center mt-8">
+            <button onclick="prevCard()" class="px-6 py-3 bg-white text-indigo-600 rounded-lg shadow hover:bg-slate-50 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-medium" id="btn-prev">
+                <i class="fas fa-arrow-left mr-2"></i> Prev
+            </button>
+            
+            <span id="counter" class="font-mono text-slate-500">1 / 25</span>
+            
+            <button onclick="nextCard()" class="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition active:scale-95 font-medium" id="btn-next">
+                Next <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+        
+        <div class="text-center mt-6">
+            <button onclick="shuffleCards()" class="text-sm text-slate-500 hover:text-indigo-600 transition">
+                <i class="fas fa-random mr-1"></i> Shuffle Cards
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Data from your flashcard set
+        const flashcardsData = [
+            { front: "Time Marker: 'Right now' or 'At the moment'", back: "Present Continuous (e.g., I am working)" },
+            { front: "Time Marker: 'Yesterday' or 'Last week'", back: "Simple Past (e.g., I worked)" },
+            { front: "Time Marker: 'Usually', 'Always', or 'Every day'", back: "Simple Present (e.g., I work)" },
+            { front: "Gap Fill: Listen! The baby _____ (cry).", back: "is crying" },
+            { front: "Gap Fill: I usually _____ (drive) to work.", back: "drive" },
+            { front: "Gap Fill: Yesterday, I _____ (buy) a new phone.", back: "bought" },
+            { front: "Verb Form: Past of 'Go'", back: "Went" },
+            { front: "Verb Form: Past of 'Buy'", back: "Bought" },
+            { front: "Verb Form: Past of 'Think'", back: "Thought" },
+            { front: "Verb Form: Past of 'Catch'", back: "Caught" },
+            { front: "Structure: Question in Past Simple (You / work?)", back: "Did you work?" },
+            { front: "Structure: Negative in Past Simple (I / not / know)", back: "I didn't know" },
+            { front: "Structure: Question in Present Continuous (It / rain?)", back: "Is it raining?" },
+            { front: "Rule: Stative Verbs (like 'know', 'like', 'understand')", back: "Usually take Simple Present, not Continuous." },
+            { front: "Error Correction: I am wanting a coffee.", back: "I want a coffee." },
+            { front: "Error Correction: Did you went to the party?", back: "Did you go to the party?" },
+            { front: "Error Correction: She cook dinner right now.", back: "She is cooking dinner right now." },
+            { front: "Gap Fill: Water _____ (boil) at 100 degrees Celsius.", back: "boils" },
+            { front: "Gap Fill: Look! The water _____ (boil). Turn it off!", back: "is boiling" },
+            { front: "Verb Form: Past of 'Teach'", back: "Taught" },
+            { front: "Verb Form: Past of 'Bring'", back: "Brought" },
+            { front: "Question: What are you doing?", back: "Asks about current activity." },
+            { front: "Question: What do you do?", back: "Asks about job or general habits." },
+            { front: "Question: What did you do?", back: "Asks about a completed past action." },
+            { front: "Error Correction: I didn't saw him.", back: "I didn't see him." }
+        ];
+
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // Elements
+        const cardInner = document.getElementById('card-inner');
+        const frontText = document.getElementById('card-front-text');
+        const backText = document.getElementById('card-back-text');
+        const counter = document.getElementById('counter');
+        const progressBar = document.getElementById('progress-bar');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        function updateCard() {
+            // Reset flip state if moving to new card
+            if (isFlipped) {
+                cardInner.classList.remove('flipped');
+                isFlipped = false;
+                // Wait for flip back animation before changing text (optional polish)
+                setTimeout(() => setTexts(), 200);
+            } else {
+                setTexts();
+            }
+        }
+
+        function setTexts() {
+            const card = flashcardsData[currentIndex];
+            frontText.textContent = card.front;
+            backText.textContent = card.back;
+            
+            // Update UI counters
+            counter.textContent = `${currentIndex + 1} / ${flashcardsData.length}`;
+            const progress = ((currentIndex + 1) / flashcardsData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Handle button states
+            btnPrev.disabled = currentIndex === 0;
+            // Loop functionality for next button? Let's keep it linear or circular. 
+            // Currently circular logic in nextCard function.
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            cardInner.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            event.stopPropagation(); // prevent card flip if clicking button area incorrectly
+            if (currentIndex < flashcardsData.length - 1) {
+                currentIndex++;
+                updateCard();
+            } else {
+                // Loop back to start option
+                if(confirm("¡Has terminado! ¿Empezar de nuevo? / Finished! Start over?")) {
+                    currentIndex = 0;
+                    updateCard();
+                }
+            }
+        }
+
+        function prevCard() {
+            event.stopPropagation();
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+            }
+        }
+
+        function shuffleCards() {
+            // Fisher-Yates Shuffle
+            for (let i = flashcardsData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [flashcardsData[i], flashcardsData[j]] = [flashcardsData[j], flashcardsData[i]];
+            }
+            currentIndex = 0;
+            if (isFlipped) {
+                cardInner.classList.remove('flipped');
+                isFlipped = false;
+                setTimeout(setTexts, 300);
+            } else {
+                setTexts();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                e.preventDefault(); // Prevent scrolling
+                flipCard();
+            }
+            if (e.code === 'ArrowRight') nextCard();
+            if (e.code === 'ArrowLeft') prevCard();
+        });
+
+        // Initialize
+        setTexts();
+
+    </script>
+</body>
+</html>
